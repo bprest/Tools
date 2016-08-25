@@ -11,11 +11,11 @@ rm(list=ls()); gc()
 
 ## Inputs ----
 # Base URL. Must be HTML, XML, or a string containing XML/HTML content content.
-base.url = 'http://www2.stat.duke.edu/~rcs46/bayes.html'
+base.url = 'https://www.data.bsee.gov/homepg/pubinfo/freeasci/product/freeprod_ogora.asp'
 
 # Destination Directory
 myroot = '/Users/Brianprest/'
-download.folder = paste0(myroot,'Downloads/webscrape/')
+download.folder = paste0(myroot,'/OneDrive/Grad School/Papers/TightOil/data/bsee boreholes/ogar-a/')
 
 # Size Limit. It will not download any single file exceeding this size.
 size.limit = 2^30 # 2^10 = 1 KB, 2^20 = 1 MB, 2^30 = 1 GB
@@ -44,13 +44,18 @@ download.file(base.url, file.out)
 doc.html <- htmlParse(base.url)
 doc.links <- xpathSApply(doc.html, "//a/@href")
 doc.links <- doc.links[grep('\\.', doc.links)] # only links containing a file (e.g .pdf, and "....com/anotherpage/")
+
+doc.links = 'https://www.data.bsee.gov/homepg/pubinfo/freeasci/product/zipped/delimit/ogora.zip'
+doc.links[2:21] = 'https://www.data.bsee.gov/homepg/pubinfo/freeasci/product/zipped/delimit/ogor'%&%1996:2015 %&%'.zip'
+
 # pdf.url <- as.character(doc.links[grep('\\.pdf', doc.links)]) # this line will download only pdf documents
 for (i in 1:length(doc.links)) {
         url = paste0(rooter(base.url), '/', doc.links[i])
+        url = doc.links[i]
         
         # Find & create subdirectories, if necessary
         subdir = rooter(gsub(super.root,'',url)) 
-        subdir = substring(subdir, 2, nchar(subdir)-1 )
+        # subdir = substring(subdir, 2, nchar(subdir)-1 )
         subdir = unlist(strsplit(subdir,'/'))
         if(length(subdir)>0) {
                 for (j in 1:length(subdir)) {
