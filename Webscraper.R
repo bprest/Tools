@@ -1,7 +1,7 @@
 ### Simple Webscraper.
 # Title: Webscraper.R
 # Author: Brian Prest
-# Date Created: August 1, 2016
+# Date Created: August 1, 2016, updated October 1, 2020
 # Description:
 #  This code takes as input a url (base.url) and a local destination folder (download.folder).
 #  It downloads the given url, along with any files hyperref'ed by that url. It stores all files
@@ -11,11 +11,14 @@ rm(list=ls()); gc()
 
 ## Inputs ----
 # Base URL. Must be HTML, XML, or a string containing XML/HTML content content.
-base.url = 'https://www.data.bsee.gov/homepg/pubinfo/freeasci/product/freeprod_ogora.asp'
+base.url = 'http://www2.stat.duke.edu/~pdh10/FCBS/'
+
+sub = 'Replication/' # download subdirectory
+base.url = paste0(base.url,sub)
 
 # Destination Directory
 myroot = '/Users/Brianprest/'
-download.folder = paste0(myroot,'/OneDrive/Grad School/Papers/TightOil/data/bsee boreholes/ogar-a/')
+download.folder = paste0(myroot,'/Dropbox/Research/Energy per GDP/Bayesian methods/Hoff book materials/',sub)
 
 # Size Limit. It will not download any single file exceeding this size.
 size.limit = 2^30 # 2^10 = 1 KB, 2^20 = 1 MB, 2^30 = 1 GB
@@ -37,40 +40,37 @@ if (!dir.exists(download.folder)) dir.create(file.path(download.folder))
 setwd(download.folder)
 
 # Download base url
-file.out = paste0(download.folder, '/', derooter(base.url))
-download.file(base.url, file.out)
+file.out = paste0(download.folder, '/', derooter(base.url),'/','base_url.html')
+# download.file(base.url, file.out)
 
 # Read base url and find files to download.
 doc.html <- htmlParse(base.url)
 doc.links <- xpathSApply(doc.html, "//a/@href")
-doc.links <- doc.links[grep('\\.', doc.links)] # only links containing a file (e.g .pdf, and "....com/anotherpage/")
-
-doc.links = 'https://www.data.bsee.gov/homepg/pubinfo/freeasci/product/zipped/delimit/ogora.zip'
-doc.links[2:21] = 'https://www.data.bsee.gov/homepg/pubinfo/freeasci/product/zipped/delimit/ogor'%&%1996:2015 %&%'.zip'
+doc.files <- doc.links[grep('\\.', doc.links)] # only links containing a file (e.g .pdf, and "....com/anotherpage/")
 
 # pdf.url <- as.character(doc.links[grep('\\.pdf', doc.links)]) # this line will download only pdf documents
-for (i in 1:length(doc.links)) {
-        url = paste0(rooter(base.url), '/', doc.links[i])
-        url = doc.links[i]
-        
-        # Find & create subdirectories, if necessary
-        subdir = rooter(gsub(super.root,'',url)) 
-        # subdir = substring(subdir, 2, nchar(subdir)-1 )
-        subdir = unlist(strsplit(subdir,'/'))
-        if(length(subdir)>0) {
-                for (j in 1:length(subdir)) {
-                        subdir.temp = paste0(subdir[1:j], collapse='/')
-                        subdir.temp = paste0(download.folder, subdir.temp, collapse='/')
-                        if (!dir.exists(subdir.temp)) dir.create(file.path(subdir.temp))
-                }
-        } else subdir.temp = download.folder # if no subdirectories, just return root folder
-        
-        # Output name
-        file.out = paste0(subdir.temp, '/', derooter(url))
-        
-        # Check the file size
-        res = url.exists(url, .header=TRUE)
-        size = as.numeric(res['Content-Length']) 
-        if(is.na(size)) size = 0 # if we can't find the file size, download anyway (e.g. html files)
-        if(size<size.limit)  try(download.file(url, file.out, mode="wb"))
+for (i in 1:length(doc.files)) {
+    url = paste0(rooter(base.url), '/', doc.files[i])
+    # url = doc.links[i]
+    
+    # Find & create subdirectories, if necessary
+    subdir = rooter(gsub(super.root,'',url)) 
+    # subdir = substring(subdir, 2, nchar(subdir)-1 )
+    subdir = unlist(strsplit(subdir,'/'))
+    if(length(subdir)>0) {
+        for (j in 1:length(subdir)) {
+            subdir.temp = paste0(subdir[1:j], collapse='/')
+            subdir.temp = paste0(download.folder, subdir.temp, collapse='/')
+            if (!dir.exists(subdir.temp)) dir.create(file.path(subdir.temp))
+        }
+    } else subdir.temp = download.folder # if no subdirectories, just return root folder
+    
+    # Output name
+    file.out = paste0(subdir.temp, '/', derooter(url))
+    
+    # Check the file size
+    res = url.exists(url, .header=TRUE)
+    size = as.numeric(res['Content-Length']) 
+    if(is.na(size)) size = 0 # if we can't find the file size, download anyway (e.g. html files)
+    if(size<size.limit)  try(download.file(url, file.out, mode="wb"))
 }
